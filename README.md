@@ -17,11 +17,10 @@ Hashing. The k positions in the following hashing scheme are g_i(x) = (h1 + i·h
 Task 2 – Distributed insertion. The bit array is an Array [Long] (64 bits per word). The items in every partition are not shuffled across the partitions in mapPartitions, each partition fills their own local bit vector from their own items. Then, using treeReduce(depth 2), the partial vectors are combined using bitwise OR. The network only crosses n-bit vectors and OR is associative and commutative, that is, the result is the same as if the insertions were sequential. The final vector is broadcast to all the executors
 Task 3 – Lookup. The only thing mightContain(x) returns false is when at least one of the k bits is 0, which means that the bit is definitely missing from the set; if all k bits are 1, then the bit is present, but not necessarily, and mightContain(x) returns true. Single lookups are done on the driver, batch lookups are done on the executors using rdd.filter on the broadcast vector. Members are a random sample of the data; non-members are created with a different prefix ("absent-i"), and thus can't be in the set.
 3. Results
-4. <img width="789" height="129" alt="image" src="https://github.com/user-attachments/assets/7c12e4bb-7ad4-436d-9847-4cc8f2a12fe7" />
+ <img width="789" height="129" alt="image" src="https://github.com/user-attachments/assets/7c12e4bb-7ad4-436d-9847-4cc8f2a12fe7" />
 
 The FPR was measured on 100,000 items that were never inserted. The observed 0.984% is below the 1% target and within one standard deviation of the theory (σ = √(p(1−p)/100,000) ≈ 0.031%). A Bloom filter guarantees there will be no false negatives. The fill ratio of 0.518 is very close to the optimum fill ratio of 0.5.
 The script (lines beginning with [time]) prints timing and partitioning statistics for dataset generation, insertion, broadcast and for each look up batch, the look up throughput, and the number of records in each partition. Measured values from my run (spark-shell, local[*]):
-Step	Time (ms)	Note
 <img width="781" height="242" alt="image" src="https://github.com/user-attachments/assets/2d572ebf-68e3-4a38-81d7-2851dcf72876" />
 
 4. Overflow handling: Scalable Bloom Filter
